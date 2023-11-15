@@ -1,0 +1,18 @@
+* Introduction
+- Motivation 
+- Problem definition
+- Concise description of contriubtion
+* Methods
+ - Significance/novelty/ (main challenges and how you address them)
+  - Main figure,
+  - Reproducibility-pseudocode (algorithm), formulation
+* Experiments
+ - Dataset
+ - Computing resource (CPU,GPU, OS, pytorch etc.)
+ - Experimental design/setup
+ - Quantitative results / comparison with baselines, SOTA
+ - Qualitative results / comparison with baselines, SOTA if possible
+ - Figures (plots)/Tables and their analysis
+ - Discussion why the proposed method is successful or unsuccessful 
+* Future direction
+* Any additional results can go to the appendix after main contents (3 pages) and reference. 
