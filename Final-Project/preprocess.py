@@ -3,9 +3,9 @@ from typing import List
 
 import numpy as np
 import pandas as pd
-from PIL import Image
+from PIL import Image, ImageOps
 
-import torch
+import torch, torchvision
 from torch.utils.data import DataLoader
 from transformers import AutoProcessor, AutoModel
 from datasets import Dataset
@@ -59,12 +59,15 @@ class MultimodalDataset:
     - text : List of str, several choices of hypothesis and observations
     - label : the index of sentence that contains a plausible hypothesis in the 'text'.
     '''
-    def __init__(self, dataset: Dataset):
+    def __init__(self, dataset: Dataset, transforms: torchvision.transforms=None):
+        
         self.tokenizer = processor.tokenizer
+        self.transforms = transforms
 
         self.image_paths = dataset["image_path"]
         self.texts = dataset["input_prompt"]
         self.labels = dataset["label"]
+
 
     def __len__(self) -> int:
         return len(self.texts)
@@ -78,6 +81,11 @@ class MultimodalDataset:
     def _load_image(self, idx: int) -> Image.Image:
         path = self.image_paths[idx]
         image = Image.open(path)
+        image = ImageOps.exif_transpose(image)
+        
+        if self.transforms:     ## transform images
+            image = self.transforms(image)
+        
         return image
 
     def _load_texts(self, idx: int) -> List[str]:
@@ -142,7 +150,9 @@ def get_data_loader(dataset, batch_size):
     return data_loader
 
 
-## codes below are for debugging preprocess.py
+
+
+####  codes below are for debugging preprocess.py  ####
 model_checkpoint = "koclip/koclip-base-pt"
 processor = AutoProcessor.from_pretrained(model_checkpoint)
 model = AutoModel.from_pretrained(model_checkpoint)
@@ -155,6 +165,12 @@ paths = {
     "image_path": "/kovar-vol/images",
 }
 
+resize_and_normalize = torchvision.transforms.Compose([torchvision.transforms.Resize((224, 224)),      ## refernece: https://github.com/openai/CLIP/issues/248, https://github.com/openai/CLIP/issues/69
+                                            torchvision.transforms.ToTensor(),
+                                            torchvision.transforms.Normalize(mean = [0.485, 0.456, 0.406], std = [0.229, 0.224, 0.225]), ## mean & std value are convention calculated from ImageNet.
+                                            torchvision.transforms.ToPILImage(),        ## CLIP model got image input in the type of not tensor but PIL.Image
+                                            ])
+
 if __name__ == "__main__":
     get_dataset = JsonToDataset()
     train_set = get_dataset(paths["train_path"])
@@ -163,8 +179,8 @@ if __name__ == "__main__":
     # max_seq_length = get_dataset.get_max_seq_length()
     batch_size = 4
 
-    train_set = MultimodalDataset(train_set)
-    test_set = MultimodalDataset(test_set)
+    train_set = MultimodalDataset(train_set, transforms=resize_and_normalize)
+    test_set = MultimodalDataset(test_set, transforms=resize_and_normalize)
 
     # print(train_set.__getitem__(1))
 
