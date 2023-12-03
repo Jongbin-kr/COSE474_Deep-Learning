@@ -115,7 +115,6 @@ def collate_fn(examples: List[tuple]):
     labels = np.zeros((len(examples), num_hyp))
     for i, label in enumerate(labels_idx):
         labels[i][label] = 1
-    print(labels)
     
     # make list of dicts
     inputs = []   # inputs: List[dict]
