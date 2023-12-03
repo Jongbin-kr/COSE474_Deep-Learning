@@ -11,19 +11,6 @@ from transformers import AutoProcessor, AutoModel
 from datasets import Dataset
 
 
-model_checkpoint = "koclip/koclip-base-pt"
-processor = AutoProcessor.from_pretrained(model_checkpoint)
-model = AutoModel.from_pretrained(model_checkpoint)
-
-# paths
-paths = {
-    ## dataset & image path
-    "train_path": "/kovar-vol/kovar/dataset/train.json",
-    "test_path": "/kovar-vol/kovar/dataset/test.json",
-    "image_path": "/kovar-vol/images",
-}
-
-
 
 class JsonToDataset:
     '''
@@ -107,7 +94,6 @@ def collate_fn(examples: List[tuple]):
     example[2] = labels
     """
     examples = list(filter(lambda x: x is not None, examples))
-    
 
     # make labels
     num_hyp = 3  # temperally fixed
@@ -155,6 +141,19 @@ def get_data_loader(dataset, batch_size):
     )
     return data_loader
 
+
+## codes below are for debugging preprocess.py
+model_checkpoint = "koclip/koclip-base-pt"
+processor = AutoProcessor.from_pretrained(model_checkpoint)
+model = AutoModel.from_pretrained(model_checkpoint)
+
+# paths
+paths = {
+    ## dataset & image path
+    "train_path": "/kovar-vol/kovar/dataset/train.json",
+    "test_path": "/kovar-vol/kovar/dataset/test.json",
+    "image_path": "/kovar-vol/images",
+}
 
 if __name__ == "__main__":
     get_dataset = JsonToDataset()
