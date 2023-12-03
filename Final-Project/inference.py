@@ -11,13 +11,14 @@ paths = {
     "image_path": "/kovar-vol/images",
     }   
 
+# model_checkpoint = "openai/clip-vit-base-patch32"
 model_checkpoint = "koclip/koclip-base-pt"
 processor = AutoProcessor.from_pretrained(model_checkpoint)
 model = AutoModel.from_pretrained(model_checkpoint)
 
 
 resize_and_normalize = torchvision.transforms.Compose([
-                                            # torchvision.transforms.Resize((224, 224)),      ## refernece: https://github.com/openai/CLIP/issues/248, https://github.com/openai/CLIP/issues/69
+                                            torchvision.transforms.Resize((224, 224)),      ## refernece: https://github.com/openai/CLIP/issues/248, https://github.com/openai/CLIP/issues/69
                                             torchvision.transforms.ToTensor(),
                                             torchvision.transforms.Normalize(mean = [0.485, 0.456, 0.406], std = [0.229, 0.224, 0.225]), ## mean & std value are convention calculated from ImageNet.
                                             torchvision.transforms.ToPILImage(),        ## CLIP model got image input in the type of not tensor but PIL.Image

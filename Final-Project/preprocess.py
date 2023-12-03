@@ -17,7 +17,7 @@ class JsonToDataset:
     Convert json files of train/test set to dataset object of hugginface datasets
     - add 'image_path'and 'input_prompt' columns to original DataFrame
     - 'image_path' : abs_path for each images
-    - 'input_prompt' : list of str, ['{obs1}[sep]{hyp0}[sep]{obs2}', '{obs1}[sep]{hyp1}[sep]{obs2}', ...]
+    - 'input_prompt' : list of str. basically it is ['{obs1}[sep]{hyp0}[sep]{obs2}', '{obs1}[sep]{hyp1}[sep]{obs2}', ...], but you can prompt-engineering
     '''
     def __init__(self):
         self.tokenizer = processor.tokenizer
@@ -37,12 +37,18 @@ class JsonToDataset:
 
     def _format_texts(self, row: pd.DataFrame) -> List[str]:
         sep_token = self.tokenizer.sep_token
+        
         obs1 = row["OBS1"]
         obs2 = row["OBS2"]
         hyps = row.loc["hyp0":"hyp2"]
+        
+        ## DIY prompt engineering here!
         text_list = list()
+        obs2 = '그 후 ' + obs2
         for hyp in hyps.values:
-            prompt_format = sep_token.join([obs1, hyp, obs2])
+            hyp = '그 이유는 ' + hyp[:-2] + '기 때문이다.'
+            
+            prompt_format = sep_token.join([obs1, obs2, hyp])
             # self.max_seq_length = max(len(prompt_format), self.max_seq_length)
             text_list.append(prompt_format)
         return text_list
