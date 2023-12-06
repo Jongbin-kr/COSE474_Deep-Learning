@@ -22,10 +22,10 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 
 # Use sys.args later
 configs={
-        'batch_size' : 4,
-        'num_epochs':30,
-        'logging_steps':10,
-        'eval_steps':10,
+        'batch_size': 4,
+        'num_epochs': 30,
+        'logging_steps': 10,
+        'eval_steps': 10,
         'model_checkpoint':"koclip/koclip-base-pt"
     }    
 paths = {
@@ -36,17 +36,17 @@ paths = {
 
 @dataclass
 class TrainingArguments:
-    batch_size:int=1
-    num_epochs:int=1
-    logging_steps:int=1
-    eval_steps:int=1
-    model_checkpoint:str='koclip/koclip-base-pt'
+    batch_size: int=1
+    num_epochs: int=1
+    logging_steps: int=1
+    eval_steps: int=1
+    model_checkpoint: str='koclip/koclip-base-pt'
 
 @dataclass
 class DatasetArguments:
-    train_path:str=None
-    test_path:str=None
-    image_path:str=None
+    train_path: str=None
+    test_path: str=None
+    image_path: str=None
 
 
 
@@ -147,3 +147,16 @@ if __name__ == "__main__":
             # Adjust learning weights TODO: 이게 뭔지 확인
             optimizer.step()
 
+            # Gather data and report
+            running_loss += loss.item()
+            if i % train_config.logging_steps == (train_config.logging_steps - 1):
+                last_loss = (running_loss / train_config.logging_steps)
+                logger.info("batch %d train loss: %f" % (log_batch, last_loss))
+                running_loss = 0
+
+                # Evaluation & Save model state
+                avg_eval_loss = evaluation(test_loader)
+                if avg_eval_loss < best_eval_loss:
+                    best_eval_loss = avg_eval_loss
+                    model_path = "model_{}_{}_{}".format(timestamp, log_epoch, log_batch)
+                    torch.save(model.state_dict(), model_path)
