@@ -36,12 +36,7 @@ class JsonToDataset:
         return path
 
     def _format_texts(self, row: pd.DataFrame) -> List[str]:
-         
-        if 'koclip' in model_checkpoint:
-            sep_token = self.tokenizer.sep_token
-        else:
-            sep_token = ' '     ## CLIP does not have sep_token by default
-                                ## if add SEP tokens by using `tokenizer.add_special_tokens()` method, the embedding layer returns IndexError: index out of range in self
+        sep_token = self.tokenizer.sep_token
         
         obs1 = row["OBS1"]
         obs2 = row["OBS2"]
@@ -49,11 +44,11 @@ class JsonToDataset:
         
         ## DIY prompt engineering here!
         text_list = list()
-        obs2 = '그 이후 ' + obs2
+        obs2 = '그 결과 ' + obs2
         for hyp in hyps.values:
-            hyp = '그 이유는 ' + hyp[:-2] + '기 때문이다.'
+            hyp = '그리고 ' + hyp
             
-            prompt_format = sep_token.join([obs1, obs2, hyp])
+            prompt_format = sep_token.join([obs1, hyp, obs2])
             # self.max_seq_length = max(len(prompt_format), self.max_seq_length)
             text_list.append(prompt_format)
         return text_list
@@ -138,12 +133,12 @@ def collate_fn(examples: List[tuple]):
         pad_token_id = processor.tokenizer.pad_token_id
 
         input['input_ids'] = np.pad(input['input_ids'], ((0, 0), (0, num_pad)), 'constant', constant_values=pad_token_id)
-        # input['token_type_ids'] = np.pad(input['token_type_ids'], ((0, 0), (0, num_pad)), 'constant', constant_values=0)     ## token_type_ids input is only for KoCLIP. CLIP does not get the input
+        input['token_type_ids'] = np.pad(input['token_type_ids'], ((0, 0), (0, num_pad)), 'constant', constant_values=0)
         input['attention_mask'] = np.pad(input['attention_mask'], ((0, 0), (0, num_pad)), 'constant', constant_values=0)
     
     # merge to 1 dict
     padded_inputs = dict()
-    keys = ['pixel_values','input_ids', 'attention_mask']   ## token_type_ids input is only for KoCLIP. CLIP does not get the input
+    keys = ['pixel_values','input_ids', 'attention_mask', 'token_type_ids']
     for key in keys:
         if key == 'pixel_values':
             padded_inputs[key] = torch.stack([input[key][0] for input in inputs])
@@ -164,8 +159,7 @@ def get_data_loader(dataset, batch_size):
 
 
 ####  codes below are for debugging preprocess.py  ####
-model_checkpoint = "openai/clip-vit-base-patch32"
-# model_checkpoint = "koclip/koclip-base-pt"
+model_checkpoint = "koclip/koclip-base-pt"
 processor = AutoProcessor.from_pretrained(model_checkpoint)
 model = AutoModel.from_pretrained(model_checkpoint)
 
