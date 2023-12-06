@@ -11,10 +11,11 @@ paths = {
     "image_path": "/kovar-vol/images",
     }   
 
-# model_checkpoint = "openai/clip-vit-base-patch32"
-model_checkpoint = "koclip/koclip-base-pt"
+model_checkpoint = "openai/clip-vit-base-patch32"
+# model_checkpoint = "koclip/koclip-base-pt"
 processor = AutoProcessor.from_pretrained(model_checkpoint)
 model = AutoModel.from_pretrained(model_checkpoint)
+
 
 
 resize_and_normalize = torchvision.transforms.Compose([
