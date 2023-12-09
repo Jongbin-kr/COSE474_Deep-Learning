@@ -44,11 +44,11 @@ class JsonToDataset:
         
         ## DIY prompt engineering here!
         text_list = list()
-        obs2 = '사진 속 장면 후에 ' + obs2
+        obs2 = obs2
         for hyp in hyps.values:
-            hyp = '그 이유는 ' + hyp[:-2] + '기 때문이다.'
+            hyp = hyp
             
-            prompt_format = sep_token.join([obs2, hyp])
+            prompt_format = sep_token.join([hyp, obs2])
             # self.max_seq_length = max(len(prompt_format), self.max_seq_length)
             text_list.append(prompt_format)
         return text_list
